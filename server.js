@@ -34,13 +34,12 @@ function send_request(method, url, headers, payload, fn) {
 
 // The proxy function
 function proxy(req, res, payload) {
-    console.log('original request:')
-    console.log(req.method);
-    console.log(req.url.substring(1));
-    console.log(req.headers);
-    console.log(payload);
     // Pre-flight request, reply 200 OK
     if (req.method == 'OPTIONS') {
+        console.log('original request:')
+        console.log(req.method);
+        console.log(req.url.substring(1));
+        console.log(req.headers);
         var headers = {'Access-Control-Allow-Origin': '*'};
         if (req.headers['access-control-request-headers']) {
             headers['access-control-allow-headers'] = req.headers['access-control-request-headers'];
@@ -48,12 +47,20 @@ function proxy(req, res, payload) {
         if (req.headers['access-control-request-method']) {
             headers['access-control-allow-methods'] = req.headers['access-control-request-method'];
         }
+        console.log('server response:');
+        console.log('200');
+        console.log(headers);
         res.writeHead(200, headers);
         res.end();
     } else {
         delete req.headers['host'];
         delete req.headers['accept-encoding'];
         delete req.headers['accept-language'];
+        console.log('original request:')
+        console.log(req.method);
+        console.log(req.url.substring(1));
+        console.log(req.headers);
+        console.log(payload);
         // proxy GET or POST request
         send_request(req.method, req.url.substring(1), req.headers, payload, function (statusCode, headers, data) {
             headers['Access-Control-Allow-Origin'] = '*';
@@ -77,7 +84,7 @@ var server = http.createServer(function (req, res) {
         req.on('end', function () {
             proxy(req, res, payload);
         });
-    } else {
+    } else if (req.url.substring(1) !== 'favicon.ico') { // skip favicon request
         // send GET request
         proxy(req, res);
     }
