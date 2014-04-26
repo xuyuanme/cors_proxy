@@ -16,13 +16,15 @@ function send_request(method, url, headers, payload, fn) {
         headers: headers
     };
     var req = require(isHttp ? 'http' : 'https').request(options, function (res) {
-        var _data = '';
+        var _responseChunks = [],
+            _responseData;
         res.on('data', function (chunk) {
-            _data += chunk;
+            _responseChunks.push(chunk);
         });
         res.on('end', function () {
+            _responseData = Buffer.concat(_responseChunks);
             if (fn) {
-                fn(res.statusCode, res.headers, _data);
+                fn(res.statusCode, res.headers, _responseData);
             }
         });
     });
